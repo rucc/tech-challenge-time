@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Pento Tracker</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0-0/axios.js"></script>
+
+    <style>
+      body {
+        background-color: linen;
+      }
+      </style>
+</head>
+<body>
+  <div id="app">
+    <router-view></router-view>
+  </div>
+</body>
+<script type="text/javascript">
+
+    const trackerComponent = Vue.component('tracker', {
+        template: `<div id="tracker">
+      <div v-if="loading">Loading...</div>
+      <div v-if="!loading">
+         <input type="text" v-model="tracker.name" @keyup.enter="start()"/>
+            <button v-show="!tracker.running" v-on:click="start()">Start</button>
+            <button v-show="tracker.running" v-on:click="stop()">Stop</button>
+      </div>
+    </div>`,
+        data() {
+            return {
+                loading: true,
+                tracker: {
+                    running: false,
+                    name: "",
+                    id: undefined,
+                    startedAt: undefined
+                }
+            }
+        },
+        mounted() {
+            this.load()
+        },
+        methods: {
+            start() {
+
+            },
+            load() {
+                this.loading = true;
+                this.tracker = {
+                    running: false,
+                    name: "",
+                    id: undefined,
+                    startedAt: undefined
+                }
+                this.loading = false;
+            }
+        }
+    }
+    );
+
+    const routes = [
+        { path: '/', name: 'tracker', component: trackerComponent },
+    ]
+
+    const router = new VueRouter({
+        routes
+    })
+
+    const app = new Vue({
+        router
+    }).$mount('#app')
+</script>
+</html>

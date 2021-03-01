@@ -1,0 +1,6 @@
+api/bin*
+api/obj*
+api/.vs/*
+Test/bin*
+Test/obj*
+.vs/*
