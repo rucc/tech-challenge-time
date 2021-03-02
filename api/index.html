@@ -6,10 +6,14 @@
     <script src="https://unpkg.com/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0-0/axios.js"></script>
+    <script src="https://momentjs.com/downloads/moment.js"></script>
 
     <style>
       body {
         background-color: linen;
+      }
+      span.trackerName {
+          font-weight: bold;
       }
       </style>
 </head>
@@ -20,13 +24,41 @@
 </body>
 <script type="text/javascript">
 
+    Date.formatDateDiff = function(date1, date2) {
+    let a = moment(date1)
+    let b = moment(date2)
+    const intervals = ['days', 'hours', 'minutes', 'seconds']
+    const unitDisplay =  [true, false, false, false]
+    const zeroDisplay = [false, true, true, true]
+    const out = [];
+
+    for(var i=0; i<intervals.length; i++){
+        let diff = a.diff(b, intervals[i])
+        b.add(diff, intervals[i])
+        if (diff > 0 || zeroDisplay[i]) {
+            let diffTxt = String(diff)
+            if (zeroDisplay[i]){
+                diffTxt = diffTxt.padStart(2, "0")
+            }
+            out.push(diffTxt + (unitDisplay[i] ? ' ' + intervals[i] : ''))
+        }
+    }
+    return out.join(':')
+    };
+
     const trackerComponent = Vue.component('tracker', {
         template: `<div id="tracker">
       <div v-if="loading">Loading...</div>
       <div v-if="!loading">
-         <input type="text" v-model="tracker.name" @keyup.enter="start()"/>
-            <button v-show="!tracker.isRunning" v-on:click="start()">Start</button>
-            <button v-show="tracker.isRunning" v-on:click="stop()">Stop</button>
+            <span v-show="!tracker.isRunning">
+                <label for="tracker-name">What are you working on?</label>
+                <input id="tracker-name" type="text" v-model="tracker.name" @keyup.enter="start()"/>
+                <button v-on:click="start()">Start</button>
+            </span>
+            <span v-show="tracker.isRunning">
+                <div class="elapsed">You spent {{elapsed}} on <span class="trackerName">{{tracker.name}}</span></div>
+                <button v-on:click="stop()">Stop</button>
+            </span>
       </div>
     </div>`,
         data() {
@@ -35,9 +67,10 @@
                 tracker: {
                     isRunning: false,
                     name: "",
-                    id: undefined,
-                    startedAt: undefined
-                }
+                    id: undefined
+                },
+                elapsed: "asdf",
+                startedAt: undefined,
             }
         },
         mounted() {
@@ -45,26 +78,49 @@
         },
         methods: {
             start() {
-                this.loading = true;
+                this.loading = true
+                this.startedAt = new Date()
+                this.startUpdating()
                 axios.post('api/Tracker', {trackerName: this.tracker.name})
                     .then((response)=>{
                         this.tracker = response.data
                         this.loading = false
                     })
             },
+            stop() {
+                this.loading = true
+                axios.patch(`api/Tracker/${this.tracker.id}`)
+                    .then((response)=>{
+                        this.tracker = response.data
+                        this.loading = false
+                    })
+            },
+            startUpdating() {
+                this.updateElapsed()
+                this.interval = setInterval(function () {
+                    this.updateElapsed()
+                }.bind(this), 1000)
+            },
+            stopUpdating() {
+                clearInterval(this.interval)
+            },
+            updateElapsed() {
+                this.elapsed = Date.formatDateDiff(new Date(), this.startedAt)
+            },
             load() {
-                this.loading = true;
+                this.loading = true
                 this.tracker = {
                     isRunning: false,
                     name: "",
-                    id: undefined,
-                    startedAt: undefined
+                    id: undefined
                 }
                 axios.get('api/Tracker/active')
                     .then(response => {
                     const active = response.data
                     if (active) {
                         this.tracker = active
+                        this.startedAt = new Date(active.startedAt)
+                        this.startUpdating()
                     }
                     this.loading = false
                     })
