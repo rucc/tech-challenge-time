@@ -24,6 +24,10 @@ namespace pentoTrack.Controllers
 
 		User CurrentUser { get { return m_userRepo.GetCurrentUser(Request); } }
 
+		/// <summary>
+		/// Gets the currently active tracking session
+		/// </summary>
+		/// <returns>The active tracker or null if there is none</returns>
 		[HttpGet("active")]
 		public ActionResult Get()
 		{

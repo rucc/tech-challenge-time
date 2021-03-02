@@ -20,6 +20,10 @@ namespace pentoTrack.Controllers
 			m_cfg = cfg;
 		}
 
+		/// <summary>
+		/// Serves the user interface of the tracker app
+		/// </summary>
+		/// <returns></returns>
 		[HttpGet]
 		public ActionResult Get()
 		{
