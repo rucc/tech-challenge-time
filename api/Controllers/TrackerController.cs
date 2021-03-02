@@ -15,11 +15,13 @@ namespace pentoTrack.Controllers
 	{
 		readonly ITrackerRepository m_trackerRepo;
 		readonly IUserRepository m_userRepo;
+		readonly IClock m_clock;
 
-		public TrackerController(ITrackerRepository trackerRepo, IUserRepository userRepo)
+		public TrackerController(ITrackerRepository trackerRepo, IUserRepository userRepo, IClock clock)
 		{
 			m_trackerRepo = trackerRepo;
 			m_userRepo = userRepo;
+			m_clock = clock;
 		}
 
 		User CurrentUser { get { return m_userRepo.GetCurrentUser(Request); } }
@@ -33,6 +35,38 @@ namespace pentoTrack.Controllers
 		{
 			var activeTracker = m_trackerRepo.GetActiveTrackerOfUser(CurrentUser.Id);
 			return Ok(activeTracker);
+		}
+
+		/// <summary>
+		/// Gets the tracking summary for the given interval
+		/// </summary>
+		/// <param name="interval">Possible values: day | week | month</param>
+		/// <returns></returns>
+		[HttpGet("summary/{interval}")]
+		public ActionResult GetSummary(string interval)
+		{
+			if (string.IsNullOrEmpty(interval))
+			{
+				ModelState.AddModelError("interval", "this field is required");
+			}
+			else if (!(new[] { "day", "week", "month" }.Contains(interval))) {
+				ModelState.AddModelError("interval", $"invalid interval: {interval} valid values are: day, week and month");
+			}
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+			var now = m_clock.Now;
+			var begin = interval switch
+			{
+				"day" => now.Date,
+				"week" => now.Date.AddDays(-1 * ((((int) now.DayOfWeek) + 7) % 8)),
+				"month" => new DateTime(now.Year, now.Month, 1),
+				_ => throw new ArgumentOutOfRangeException($"unexpected interval: {interval}")
+			};
+			
+			var trackers = m_trackerRepo.GetTrackerHistoryDuring(CurrentUser.Id, begin, now);
+			return Ok(new TrackingSummary(trackers, interval));
 		}
 
 		/// <summary>

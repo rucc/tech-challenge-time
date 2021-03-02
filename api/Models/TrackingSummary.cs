@@ -10,5 +10,15 @@ namespace pentoTrack.Models
 		public string Name { get; set; }
 		public IEnumerable<Tracker> Trackers { get; set; }
 		public int TotalSeconds { get; set; }
+
+		public TrackingSummary(IEnumerable<Tracker> trackers, string name)
+		{
+			Name = name;
+			Trackers = trackers.Where(t => t.StoppedAt.HasValue).ToList();
+			TotalSeconds = Trackers
+				.Select(t => (t.StoppedAt.Value - t.StartedAt).TotalSeconds)
+				.Select(secs => Convert.ToInt32(secs))
+				.Sum();
+		}
 	}
 }
