@@ -22,6 +22,17 @@
       a.router-link-exact-active {
         font-weight: bold;
       }
+      div.summaryItem {
+          display: table-row;
+      }
+      div.summaryItem:hover {
+        background-color: #9caaa7;
+      }
+      span.summaryDetail {
+        display: table-cell;
+        padding: 5px;
+      }
+      
       </style>
 </head>
 <body>
@@ -148,10 +159,11 @@
             
             <div v-if="!loading">
                 <p>Your stats for this {{$route.params.interval}}</p>
-                total time tracked: {{summary.totalSeconds}}
+                Total time tracked: {{summary.totalSeconds * 1000 | ms2string}}
+                <div class="summaryItem"><span class="summaryDetail">Task name</span><span class="summaryDetail">Time spent</span></div>
                 <div class="summaryItem" v-for="item in summary.trackers" :key=item.id>
                     <span class="summaryDetail">{{item.name}}</span>
-                    <span class="summaryDetail">{{new Date(item.stoppedAt) - new Date(item.startedAt)}}</span>
+                    <span class="summaryDetail">{{new Date(item.stoppedAt) - new Date(item.startedAt) | ms2string}}</span>
                 </div>
             </div>
         </div>`,
@@ -192,6 +204,10 @@
 
     const router = new VueRouter({
         routes
+    })
+
+    Vue.filter('ms2string', function(millis){
+        return Date.formatDateDiff(new Date(millis), new Date(0))
     })
 
     const app = new Vue({
