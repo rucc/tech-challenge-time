@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,7 +15,7 @@ using static pentoTrack.Services.ITrackerRepository;
 
 namespace pentoTrack
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -56,8 +53,10 @@ namespace pentoTrack
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddLog4Net();
+            app.UseMiddleware<RequestLoggingMiddleware>();
             m_trackerCfg.ContentRoot = env.ContentRootPath;
             if (env.IsDevelopment())
             {
@@ -76,6 +75,33 @@ namespace pentoTrack
             {
                 endpoints.MapControllers();
             });
+        }
+    }
+    public class RequestLoggingMiddleware
+    {
+        private readonly RequestDelegate m_next;
+        private readonly ILogger m_logger;
+
+        public RequestLoggingMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
+        {
+            m_next = next;
+            m_logger = loggerFactory.CreateLogger("RequestLogger");
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            try
+            {
+                await m_next(context);
+            }
+            finally
+            {
+                m_logger.LogInformation(
+                    "Request {method} {url} => {statusCode}",
+                    context.Request?.Method,
+                    context.Request?.Path.Value,
+                    context.Response?.StatusCode);
+            }
         }
     }
 }

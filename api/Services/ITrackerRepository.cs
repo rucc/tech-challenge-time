@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using log4net;
+using Newtonsoft.Json;
 using pentoTrack.Models;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace pentoTrack.Services
 		{
 			readonly Config m_cfg;
 			readonly IClock m_clock;
+			readonly ILog m_logger = LogManager.GetLogger(typeof(JsonFileTrackerRepo));
 			private object m_mutex = new object();
 			Dictionary<string, Tracker> m_trackers = new Dictionary<string, Tracker>();
 
@@ -51,6 +53,7 @@ namespace pentoTrack.Services
 
 			public Tracker StartTracker(string userId, string trackerName)
 			{
+				m_logger.Info($"starting tracker {trackerName} for usr {userId}");
 				var tracker = new Tracker
 				{
 					Id = Guid.NewGuid().ToString(),
@@ -64,11 +67,13 @@ namespace pentoTrack.Services
 					m_trackers[tracker.Id] = tracker;
 					SaveTrackers();
 				}
+				m_logger.Info($"created tracker with id {tracker.Id} for {trackerName}");
 				return tracker;
 			}
 
 			public Tracker StopTracker(string trackerId)
 			{
+				m_logger.Info($"stoping tracker {trackerId}");
 				lock (m_mutex)
 				{
 					var tracker = m_trackers[trackerId];
