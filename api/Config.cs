@@ -8,6 +8,7 @@ namespace pentoTrack
 	public class Config
 	{
 		public string TrackersJsonFileLocation = "./trackers.json";
+		public string UsersJsonFileLocation = "./users.json";
 		public string ContentRoot { get; set; }
 	}
 }

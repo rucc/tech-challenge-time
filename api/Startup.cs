@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using pentoTrack.Services;
+using static pentoTrack.Services.ITrackerRepository;
 
 namespace pentoTrack
 {
@@ -29,12 +31,18 @@ namespace pentoTrack
         public void ConfigureServices(IServiceCollection services)
         {
             m_trackerCfg = new Config();
+            var clock = new SysClock();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "pentoTrack", Version = "v1" });
             });
             services.AddSingleton<Config>(m_trackerCfg);
+            services.AddSingleton<IClock>(clock);
+            var trackerRepo = new JsonFileTrackerRepo(m_trackerCfg, clock);
+            services.AddSingleton<ITrackerRepository>(trackerRepo);
+            var userRepo = new SingleUserRepository();
+            services.AddSingleton<IUserRepository>(userRepo);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

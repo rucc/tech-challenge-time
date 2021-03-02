@@ -25,15 +25,15 @@
       <div v-if="loading">Loading...</div>
       <div v-if="!loading">
          <input type="text" v-model="tracker.name" @keyup.enter="start()"/>
-            <button v-show="!tracker.running" v-on:click="start()">Start</button>
-            <button v-show="tracker.running" v-on:click="stop()">Stop</button>
+            <button v-show="!tracker.isRunning" v-on:click="start()">Start</button>
+            <button v-show="tracker.isRunning" v-on:click="stop()">Stop</button>
       </div>
     </div>`,
         data() {
             return {
                 loading: true,
                 tracker: {
-                    running: false,
+                    isRunning: false,
                     name: "",
                     id: undefined,
                     startedAt: undefined
@@ -45,17 +45,29 @@
         },
         methods: {
             start() {
-
+                this.loading = true;
+                axios.post('api/Tracker', {trackerName: this.tracker.name})
+                    .then((response)=>{
+                        this.tracker = response.data
+                        this.loading = false
+                    })
             },
             load() {
                 this.loading = true;
                 this.tracker = {
-                    running: false,
+                    isRunning: false,
                     name: "",
                     id: undefined,
                     startedAt: undefined
                 }
-                this.loading = false;
+                axios.get('api/Tracker/active')
+                    .then(response => {
+                    const active = response.data
+                    if (active) {
+                        this.tracker = active
+                    }
+                    this.loading = false
+                    })
             }
         }
     }
