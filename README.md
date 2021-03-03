@@ -9,7 +9,9 @@ run (from the api project root): dotnet run --urls=http://localhost:5001 pentoTr
 - swagger spec: /swagger/index.html
 
 Deployed version: http://lhari.hu:5001/ui
+
 Swagger spec: http://lhari.hu:5001/swagger/index.html
+
 Work log + decisions: https://docs.google.com/document/d/1M-ZlRHCjt57depPbpV7-3QGo6TejCJrpsqCuVBZjf8k/edit?usp=sharing
 
 # Pento tech challenge
