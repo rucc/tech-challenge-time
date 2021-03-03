@@ -75,6 +75,12 @@
         template: `<div id="tracker">
         <div v-if="loading">Loading...</div>
             <div v-if="!loading">
+                <p v-if="errors.length">
+                    <b>Please correct the following error(s):</b>
+                    <ul>
+                    <li v-for="error in errors">{{ error }}</li>
+                    </ul>
+                </p>
                 <span v-show="!tracker.isRunning">
                     <label for="tracker-name">What are you working on?</label>
                     <input id="tracker-name" type="text" v-model="tracker.name" @keyup.enter="start()"/>
@@ -89,6 +95,7 @@
         data() {
             return {
                 loading: true,
+                errors: [],
                 tracker: {
                     isRunning: false,
                     name: "",
@@ -102,7 +109,17 @@
             this.load()
         },
         methods: {
+            validate() {
+                this.errors = []
+                if (!this.tracker.name){
+                    this.errors.push("Task name required")
+                }
+                return this.errors.length == 0;
+            },
             start() {
+                if (!this.validate()){
+                    return
+                }
                 this.loading = true
                 this.startedAt = new Date()
                 this.startUpdating()
@@ -153,7 +170,7 @@
         }
     });
 
-    const summaryComponent = Vue.component('summary', {
+    const summaryComponent = Vue.component('tracker-summary', {
         template: `<div id="summary">
             <div v-if="loading">Loading...</div>
             
@@ -199,7 +216,7 @@
 
     const routes = [
         { path: '/', name: 'tracker', component: trackerComponent },
-        { path: '/summary/:interval', name: 'tracker', component: summaryComponent },
+        { path: '/summary/:interval', name: 'summary', component: summaryComponent },
     ]
 
     const router = new VueRouter({
