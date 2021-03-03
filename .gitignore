@@ -4,3 +4,5 @@ api/.vs/*
 Test/bin*
 Test/obj*
 .vs/*
+api/pentoTrack.csproj.user
+api/trackers.json
