@@ -15,10 +15,9 @@ namespace pentoTrack.Models
 		{
 			Name = name;
 			Trackers = trackers.Where(t => t.StoppedAt.HasValue).OrderByDescending(t => t.StartedAt).ToList();
-			TotalSeconds = Trackers
+			TotalSeconds = Convert.ToInt32(Trackers
 				.Select(t => (t.StoppedAt.Value - t.StartedAt).TotalSeconds)
-				.Select(secs => Convert.ToInt32(secs))
-				.Sum();
+				.Sum());
 		}
 	}
 }
